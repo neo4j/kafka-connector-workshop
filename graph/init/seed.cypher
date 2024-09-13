@@ -31,4 +31,4 @@ ON CREATE SET
 
 --changeset connectors-team:undo-seed-data-init runAlways:true labels:!seed
 MATCH (seed:Seed) DETACH DELETE seed;
---rollback FINISH
+--rollback empty
