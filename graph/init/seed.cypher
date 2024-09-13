@@ -1,38 +1,32 @@
 -- liquibase formatted cypher
 
--- changeset connectors-team:seed-data-init labels:seed
-CREATE (:Seed:User {
-    name: 'Ali',
-    email_address: 'ali.ince@neo4j.com',
-    creation_timestamp: timestamp()
-});
-CREATE (:Seed:User {
-    name: 'Dhru',
-    email_address: 'dhru.devalia@neo4j.com',
-    creation_timestamp: timestamp()
-});
-CREATE (:Seed:User {
-    name: 'Emre',
-    email_address: 'emre.hizal@neo4j.com',
-    creation_timestamp: timestamp()
-});
-CREATE (:Seed:User {
-    name: 'Eugene',
-    email_address: 'eugene.rubanov@neo4j.com',
-    creation_timestamp: timestamp()
-});
-CREATE (:Seed:User {
-    name: 'Florent',
-    email_address: 'florent.biville@neo4j.com',
-    creation_timestamp: timestamp()
-});
-CREATE (:Seed:Task {
-    uuid: randomUUID(),
-    title: 'A Sample Task',
-    description: 'In-te-res-ting!',
-    creation_timestamp: timestamp(),
-    last_update_timestamp: timestamp()
-});
+-- changeset connectors-team:seed-data-init runAlways:true labels:seed
+MERGE (ali:Seed:User {email_address: 'ali.ince@neo4j.com'})
+ON CREATE SET
+    ali.name = 'Ali',
+    ali.creation_timestamp = timestamp();
+MERGE (dhru:Seed:User {email_address: 'dhru.devalia@neo4j.com'})
+ON CREATE SET
+    dhru.name = 'Dhru',
+    dhru.creation_timestamp = timestamp();
+MERGE (emre:Seed:User {email_address: 'emre.hizal@neo4j.com'})
+ON CREATE SET
+    emre.name = 'Emre',
+    emre.creation_timestamp = timestamp();
+MERGE (eugene:Seed:User {email_address: 'eugene.rubanov@neo4j.com'})
+ON CREATE SET
+    eugene.name = 'Eugene',
+    eugene.creation_timestamp = timestamp();
+MERGE (florent:Seed:User {email_address: 'florent.biville@neo4j.com'})
+ON CREATE SET
+    florent.name = 'Florent',
+    florent.creation_timestamp = timestamp();
+MERGE (task:Seed:Task {title: 'A Sample Task'})
+ON CREATE SET
+    task.uuid = randomUUID(),
+    task.description = 'In-te-res-ting!',
+    task.creation_timestamp = timestamp(),
+    task.last_update_timestamp = timestamp();
 
 -- changeset connectors-team:undo-seed-data-init runAlways:true labels:!seed
 MATCH (seed:Seed) DETACH DELETE seed;
