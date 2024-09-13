@@ -1,6 +1,6 @@
--- liquibase formatted cypher
+--liquibase formatted cypher
 
--- changeset connectors-team:seed-data-init runAlways:true labels:seed
+--changeset connectors-team:seed-data-init runAlways:true labels:seed
 MERGE (ali:Seed:User {email_address: 'ali.ince@neo4j.com'})
 ON CREATE SET
     ali.name = 'Ali',
@@ -27,6 +27,8 @@ ON CREATE SET
     task.description = 'In-te-res-ting!',
     task.creation_timestamp = timestamp(),
     task.last_update_timestamp = timestamp();
+--rollback MATCH MATCH (seed:Seed) DETACH DELETE seed;
 
--- changeset connectors-team:undo-seed-data-init runAlways:true labels:!seed
+--changeset connectors-team:undo-seed-data-init runAlways:true labels:!seed
 MATCH (seed:Seed) DETACH DELETE seed;
+--rollback FINISH
