@@ -15,4 +15,38 @@ the example application.
 
 ## Step 1: Understanding the Application
 
-Checkout branch [step-1](https://github.com/neo4j/kafka-connector-workshop/tree/step-1), and reload this `README`.
+A front-end application with no connections to the database can be found in the `app` folder.
+This application has been implemented using TypeScript and React wired to fake data.
+
+In order to run the application, first make sure you have
+an [LTS version of NodeJS](https://nodejs.org/en/download/package-manager) installed.
+
+First, change working directory to `app` folder:
+
+```shell
+cd app
+```
+
+Install required dependencies:
+
+```shell
+npm install
+```
+
+Start the application:
+
+```shell
+npm start
+```
+
+which will start your default browser.
+
+You can login using the email address `neo4j.connectors+workshop@gmail.com` and interact with fake data.
+Feel free to browse the source code and familiarize yourself with the components.
+
+## Step 2: Graph Model
+
+What would be a good graph model for this application?
+Either come up with a model of your own or see what we have designed by checking out
+branch [step-2](https://github.com/neo4j/kafka-connector-workshop/tree/step-2) and reloading this `README`.
+
