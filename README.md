@@ -215,5 +215,84 @@ Next step is to create an instance of Neo4j Connector for Confluent source conne
 happening in the database. Refer to [Neo4j Connector for Kafka](https://neo4j.com/docs/kafka) documentation for more
 information about the connector and how to install and configure it.
 
-Checkout branch [step-6](https://github.com/neo4j/kafka-connector-workshop/tree/step-6), and reload this `README` for
-further instructions.
+### Install connector
+
+#### Option 1: Confluent Cloud
+
+If you have access to a Confluent Cloud account, you can grab the
+latest [Neo4j Connector for Confluent](https://www.confluent.io/hub/neo4j/kafka-connect-neo4j) connector version and
+create a custom connector on the platform.
+
+#### Option 2: Docker
+
+Grab the latest version of the JAR distribution of the Neo4j Connector for Kafka
+from [Github Releases page](https://github.com/neo4j/neo4j-kafka-connector/releases) and copy it into `docker/plugins`
+folder.
+You need to relaunch the Kafka Connect container for it to pick up the changes.
+
+```bash
+cd docker
+docker compose restart connect
+```
+
+### Create connector instance
+
+A sample source connector configuration that we have created is as follows:
+
+```json
+{
+  "name": "TasksSourceConnector",
+  "config": {
+    "connector.class": "org.neo4j.connectors.kafka.source.Neo4jConnector",
+    "key.converter": "io.confluent.connect.avro.AvroConverter",
+    "key.converter.schema.registry.url": "<change with your schema registry url>",
+    "value.converter": "io.confluent.connect.avro.AvroConverter",
+    "value.converter.schema.registry.url": "<change with your schema registry url>",
+    "neo4j.uri": "<change with neo4j uri>",
+    "neo4j.authentication.basic.username": "<change with neo4j username>",
+    "neo4j.authentication.basic.password": "<change with neo4j password>",
+    "neo4j.source-strategy": "CDC",
+    "neo4j.start-from": "USER_PROVIDED",
+    "neo4j.start-from.value": "<paste the change identifier captured in Step 3>",
+    "neo4j.cdc.poll-interval": "5s",
+    "neo4j.cdc.topic.task-assigned.key-strategy": "ENTITY_KEYS",
+    "neo4j.cdc.topic.task-assigned.value-strategy": "ENTITY_EVENT",
+    "neo4j.cdc.topic.task-assigned.patterns.0.operation": "create",
+    "neo4j.cdc.topic.task-assigned.patterns.0.pattern": "(:Task)-[:ASSIGNED_TO]->(:User)",
+    "neo4j.cdc.topic.task-created.key-strategy": "ENTITY_KEYS",
+    "neo4j.cdc.topic.task-created.value-strategy": "ENTITY_EVENT",
+    "neo4j.cdc.topic.task-created.patterns.0.operation": "create",
+    "neo4j.cdc.topic.task-created.patterns.0.pattern": "(:Task:Incoming)",
+    "neo4j.cdc.topic.task-transitioned.key-strategy": "ENTITY_KEYS",
+    "neo4j.cdc.topic.task-transitioned.value-strategy": "ENTITY_EVENT",
+    "neo4j.cdc.topic.task-transitioned.patterns.0.operation": "create",
+    "neo4j.cdc.topic.task-transitioned.patterns.0.pattern": "(:User)-[:TRANSITIONED]->(:Task)",
+    "neo4j.cdc.topic.tasks.key-strategy": "ENTITY_KEYS",
+    "neo4j.cdc.topic.tasks.value-strategy": "ENTITY_EVENT",
+    "neo4j.cdc.topic.tasks.patterns.0.operation": "create",
+    "neo4j.cdc.topic.tasks.patterns.0.pattern": "(:Task)",
+    "neo4j.cdc.topic.users.key-strategy": "ENTITY_KEYS",
+    "neo4j.cdc.topic.users.value-strategy": "ENTITY_EVENT",
+    "neo4j.cdc.topic.users.patterns.0.operation": "create",
+    "neo4j.cdc.topic.users.patterns.0.pattern": "(:User)",
+    "neo4j.cdc.topic.watches.key-strategy": "ENTITY_KEYS",
+    "neo4j.cdc.topic.watches.value-strategy": "ENTITY_EVENT",
+    "neo4j.cdc.topic.watches.patterns": "(:User)-[:WATCHES]->(:Task)"
+  }
+}
+```
+
+Do not forget to replace the configuration values that's wrapped inside `<>` (including diamonds) based on your
+environment. Now that you have edited the configuration, you can go ahead and create an instance of our source
+connector. Refer to [Neo4j Connector for Kafka > Quickstart](https://neo4j.com/docs/kafka/current/) for more information
+about how to create an instance.
+
+Verify that everything is up and running, and you have messages in the configured Kafka topics.
+
+## Step 7: Install SMTP sink connector
+
+Now that we have our source connector delivering messages into Kafka topics, it's time to look into how to curate email
+notifications out of this data.
+
+Check out [step-7](https://github.com/neo4j/kafka-connector-workshop/tree/step-7) and reload this README for further
+instructions.
