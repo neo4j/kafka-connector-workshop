@@ -205,5 +205,15 @@ the following best practices while doing so:
 
 ## Step 5: Completed application
 
-Check out [step-5](https://github.com/neo4j/kafka-connector-workshop/tree/step-5#step-5-completed-application) and
-reload this README for further instructions. 
+Please take your time and play with it.
+
+We now have a fully working front end application.
+
+## Step 6: Create CDC source connector
+
+Next step is to create an instance of Neo4j Connector for Confluent source connector that uses CDC to capture changes
+happening in the database. Refer to [Neo4j Connector for Kafka](https://neo4j.com/docs/kafka) documentation for more
+information about the connector and how to install and configure it.
+
+Checkout branch [step-6](https://github.com/neo4j/kafka-connector-workshop/tree/step-6), and reload this `README` for
+further instructions.
