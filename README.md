@@ -68,3 +68,10 @@ In a few sentences;
 - Relationships will not be updatable, so we decided to only keep `creation_timestamp` property in relationships.
 - We modeled a `WATCHES` relationship as well, which has no corresponding implementation in the exercise. Feel free to
   use it as an improvement on your own.
+
+## Step 3: Provision your database
+
+We need a database :).
+
+Check out branch [step-3](https://github.com/neo4j/kafka-connector-workshop/tree/step-3) and reload this README for
+further instructions.
