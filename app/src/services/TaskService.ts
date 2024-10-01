@@ -1,6 +1,7 @@
+import Neo4jDriver from "../database/Neo4jDriver";
+import { Driver, Record } from "neo4j-driver";
 import { User } from "./UserService";
-import UserService from "./UserService";
-import { v4 as uuidv4 } from "uuid";
+import Cypher from "@neo4j/cypher-builder";
 
 export type TaskStatus = "Incoming" | "InProgress" | "Completed";
 
@@ -12,75 +13,179 @@ export interface Task {
   assignee?: User;
 }
 
-const data: Task[] = [
-  {
-    id: "8dee1386-0601-4aaa-ac98-139d3254646a",
-    title: "Prepare schema",
-    description: "Workshop requires a graph schema",
+const mapFetchData = (record: Record): Task => {
+  const task = record.get("task");
+  const { uuid, title, description } = task.properties;
+
+  let assignee = undefined;
+  const a = record.get("assignee");
+  if (a) {
+    const { name, email_address, creation_timestamp } = a.properties;
+    assignee = {
+      name: name,
+      emailAddress: email_address,
+      creationTimestamp: new Date(creation_timestamp.toNumber()),
+    };
+  }
+
+  let status = undefined;
+  const transition = record.get("transition");
+  if (!transition) {
+    if (task.labels.includes("Incoming")) {
+      status = "Incoming";
+    } else {
+      throw new Error("Task has no valid status or status label.");
+    }
+  } else {
+    status = transition.properties["to"];
+  }
+
+  return {
+    id: uuid,
+    title: title,
+    description: description,
+    status: status,
+    assignee: assignee,
+  };
+};
+
+const mapCreateData = (record: Record): Task => {
+  const t = record.get("t");
+  const { uuid, title, description } = t.properties;
+  return {
+    id: uuid,
+    title: title,
+    description: description,
     status: "Incoming",
-    assignee: undefined,
-  },
-  {
-    id: "ca4805e0-b084-4f66-a85c-773994c24f08",
-    title: "Prepare seed data",
-    description: "Workshop requires seed data",
-    status: "Incoming",
-    assignee: undefined,
-  },
-  {
-    id: "5bec1895-fe5a-4bf8-af8d-32866e9dac86",
-    title: "Prepare front end application",
-    description: "Prepare a front end application",
-    status: "Incoming",
-    assignee: undefined,
-  },
-  {
-    id: "10f4d293-d5c3-4c9a-84d0-fb73d99ce96b",
-    title: "Prepare source connector",
-    description: "Provision CDC source connector in Confluent Platform",
-    status: "Incoming",
-    assignee: undefined,
-  },
-];
+  };
+};
 
 class TaskService {
+  private driver: Driver;
+
+  constructor() {
+    this.driver = Neo4jDriver.getInstance();
+  }
+
   async fetch(): Promise<Task[]> {
-    return new Promise((resolve) => {
-      resolve(data);
-    });
+    try {
+      const task = new Cypher.Node();
+      const assigned = new Cypher.Relationship();
+      const assignee = new Cypher.Node();
+      const transitioned = new Cypher.Relationship();
+      const taskPattern = new Cypher.Pattern(task, { labels: ["Task"] });
+      const taskNamed = new Cypher.NamedVariable("task");
+      const assignees = new Cypher.Variable();
+      const transitions = new Cypher.Variable();
+
+      const assignedToSubQuery = new Cypher.Match(
+        new Cypher.Pattern(task)
+          .related(assigned, { type: "ASSIGNED_TO" })
+          .to(assignee, { labels: ["User"] }),
+      )
+        .return(assignee)
+        .orderBy([assigned.property("creation_timestamp"), "DESC"]);
+      const transitionSubQuery = new Cypher.Match(
+        new Cypher.Pattern({ labels: ["User"] })
+          .related(transitioned, { type: "TRANSITIONED" })
+          .to(task),
+      )
+        .return(transitioned)
+        .orderBy([transitioned.property("creation_timestamp"), "DESC"]);
+
+      const { cypher, params } = new Cypher.Match(taskPattern)
+        .with(
+          new Cypher.With(
+            [task, taskNamed],
+            [new Cypher.Collect(assignedToSubQuery), assignees],
+            [new Cypher.Collect(transitionSubQuery), transitions],
+          ),
+        )
+        .return(
+          taskNamed,
+          [assignees.index(0), "assignee"],
+          [transitions.index(0), "transition"],
+        )
+        .build();
+
+      const { records } = await this.driver.executeQuery(cypher, params, {
+        database: "neo4j",
+      });
+
+      return records.map((record) => mapFetchData(record));
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+      throw error;
+    }
   }
 
   async create(title: string, description: string): Promise<Task> {
-    const task: Task = {
-      id: uuidv4(),
-      title: title,
-      description: description,
-      status: "Incoming",
-      assignee: undefined,
-    };
+    try {
+      const task = new Cypher.Node();
+      const pattern = new Cypher.Pattern(task, {
+        labels: ["Task", "Incoming"],
+        properties: {
+          uuid: new Cypher.Function("randomUUID"),
+          title: new Cypher.Param(title),
+          description: new Cypher.Param(description),
+          creation_timestamp: new Cypher.Function("timestamp"),
+          last_update_timestamp: new Cypher.Function("timestamp"),
+        },
+      });
+      const { cypher, params } = new Cypher.Create(pattern)
+        .return([task, "t"])
+        .build();
 
-    data.push(task);
+      const { records } = await this.driver.executeQuery(cypher, params, {
+        database: "neo4j",
+      });
 
-    return new Promise((resolve) => {
-      resolve(task);
-    });
+      return mapCreateData(records[0]);
+    } catch (error) {
+      console.error("Error creating task:", error);
+      throw error;
+    }
   }
 
   async assign(taskId: string, userEmailAddress: string): Promise<Task> {
-    return new Promise(async (resolve, reject) => {
-      const user = await new UserService().lookup(userEmailAddress);
-      if (!user) {
-        reject("unable to find user");
-      }
+    try {
+      const task = new Cypher.Node();
+      const assignee = new Cypher.Node();
 
-      const task = data.find((e) => e.id === taskId);
-      if (!task) {
-        reject("unable to find task");
-      } else {
-        task.assignee = user;
-        resolve(task);
-      }
-    });
+      const { cypher, params } = new Cypher.Match(
+        new Cypher.Pattern(task, {
+          labels: ["Task"],
+          properties: { uuid: new Cypher.Param(taskId) },
+        }),
+      )
+        .match(
+          new Cypher.Pattern(assignee, {
+            labels: ["User"],
+            properties: { email_address: new Cypher.Param(userEmailAddress) },
+          }),
+        )
+        .merge(
+          new Cypher.Pattern(task)
+            .related({
+              type: "ASSIGNED_TO",
+              properties: {
+                creation_timestamp: new Cypher.Function("timestamp"),
+              },
+            })
+            .to(assignee),
+        )
+        .return([task, "t"])
+        .build();
+
+      const { records } = await this.driver.executeQuery(cypher, params, {
+        database: "neo4j",
+      });
+
+      return mapCreateData(records[0]);
+    } catch (error) {
+      console.error("Error creating task:", error);
+      throw error;
+    }
   }
 
   async transition(
@@ -89,25 +194,54 @@ class TaskService {
     to: string,
     userEmailAddress: string,
   ): Promise<any> {
-    return new Promise(async (resolve, reject) => {
-      if (from === to) {
-        resolve({});
-      } else {
-        const task = data.find((e) => e.id === taskId);
-        if (!task) {
-          reject("unable to find task");
-        } else {
-          task.status = to as TaskStatus;
-          resolve(task);
-        }
-      }
-    });
-  }
+    if (from === to) {
+      return;
+    }
+    try {
+      const user = new Cypher.Node();
+      const task = new Cypher.NamedNode("t");
+      const transitioned = new Cypher.Relationship();
 
-  async closeSession(): Promise<void> {
-    return new Promise((resolve) => {
-      resolve();
-    });
+      const { cypher, params } = new Cypher.Match(
+        new Cypher.Pattern(task, {
+          labels: ["Task"],
+          properties: { uuid: new Cypher.Param(taskId) },
+        }),
+      )
+        .match(
+          new Cypher.Pattern(user, {
+            labels: ["User"],
+            properties: { email_address: new Cypher.Param(userEmailAddress) },
+          }),
+        )
+        .merge(
+          new Cypher.Pattern(user)
+            .related(transitioned, {
+              type: "TRANSITIONED",
+              properties: {
+                from: new Cypher.Param(from),
+                to: new Cypher.Param(to),
+                creation_timestamp: new Cypher.Function("timestamp"),
+              },
+            })
+            .to(task),
+        )
+        .return([transitioned, "r"])
+        .build();
+
+      const { records } = await this.driver.executeQuery(cypher, params, {
+        database: "neo4j",
+      });
+
+      if (records.length === 0) {
+        new Error("No relationship was created.");
+      }
+
+      return records[0].get("r");
+    } catch (error) {
+      console.error("Error transitioning task:", error);
+      throw error;
+    }
   }
 }
 
