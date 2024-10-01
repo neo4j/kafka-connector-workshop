@@ -168,9 +168,19 @@ liquibase rollback --tag=v0 --changelog-file ./graph/main.xml --url jdbc:neo4j:<
 
 It's fun time :tada:.
 
-Check
-out [step-4](https://github.com/neo4j/kafka-connector-workshop/tree/step-4#step-4-wire-application-to-the-database) and
-reload this README for further instructions.
+We already wired login, user list and create user flows to the database as an example. Please feel free to
+play with it yourself, and take a stab on completing the task flows by yourself.
 
-We already wired login, user list and create user flows to the database as an example. Please feel free to play with it
-yourself, and take a stab on completing the task flows by yourself.
+We removed fake data from `UserService` and updated all functions to query the database. We used the following best
+practices while doing so:
+
+1. We have introduced a singleton `Neo4jDriver` object that holds a reference to an application wide driver object.
+2. Used `@neo4j/cypher-builder` to build our Cypher statements, which allows us to build more secure applications by
+   avoiding string concatenation. Refer
+   to [Cypher Builder docs](https://neo4j.github.io/cypher-builder/cypher-builder/current/) for more information.
+3. Used `Driver` object's `executeQuery` function to run actual queries against the database.
+
+## Step 5: Completed application
+
+Check out [step-5](https://github.com/neo4j/kafka-connector-workshop/tree/step-5) and reload this README for further
+instructions. 
