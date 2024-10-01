@@ -73,5 +73,106 @@ In a few sentences;
 
 We need a database :smiley:.
 
-Check out branch [step-3](https://github.com/neo4j/kafka-connector-workshop/tree/step-3#step-3-provision-your-database)
-and reload this README for further instructions.
+Since we will be using [Change Data Capture](https://neo4j.com/docs/cdc) feature, we either need an existing Aura
+Virtual Dedicated Cloud instance or spawn up our database locally using docker.
+
+### Get a database
+
+#### Option 1: Aura Virtual Dedicated Cloud
+
+If you have access to an existing Aura VDC instance for development purposes, please head over
+to [Aura Console](https://console.neo4j.io) and [enable CDC](https://neo4j.com/docs/cdc/current/get-started/aura/) on
+your instance.
+
+#### Option 2: Docker Compose
+
+Otherwise, ensure that you have a recent version of `Docker Desktop` and `Docker Compose` installed on your computer and
+launch all the services we will require throughout this workshop.
+
+First, change directory to `docker` folder:
+
+```shell
+cd docker
+```
+
+Launch all the services, including latest version Neo4j and Confluent Platform components.
+
+```shell
+docker compose up -d
+```
+
+Wait until all components are up and running, and are reported healthy.
+
+```shell
+docker compose ps
+```
+
+You can now access your neo4j browser at `http://localhost:7474` with username `neo4j` and password `password`.
+You can change these defaults in the `docker/docker-compose.yml` file.
+
+[Enable CDC](https://neo4j.com/docs/cdc/current/get-started/self-managed/) on your database by issuing the following
+statement in Neo4j Browser.
+
+```cypher
+
+ALTER DATABASE neo4j SET OPTION txLogEnrichment 'FULL' WAIT;
+```
+
+### Record current change identifier
+
+Although not necessary, in order to capture all changes we will make from this moment, we will record the current change
+identifier for use later in our connector step.
+Invoke the following statement in Neo4j Browser and record the returned change identifier.
+
+```cypher
+
+CALL db.cdc.current();
+```
+
+### Create schema and seed data
+
+We have prepared some liquibase change sets that introduces required constraints for our graph model, and optionally
+introduce some seed data.
+
+#### Setup
+
+For this, install [Liquibase](https://www.liquibase.com/download).
+
+> `brew install liquibase` works like a charm on Mac OS.
+
+Download [the latest Neo4j plugin release](https://github.com/liquibase/liquibase-neo4j/releases/download/v4.29.2/liquibase-neo4j-4.29.2-full.jar)
+and copy it to Liquibase `lib/` folder.
+
+> With Homebrew, this will be a path like `$(brew --prefix)/Cellar/liquibase/4.29.2/libexec/lib`.
+
+#### Run
+
+Now, you can run the following script:
+
+```
+./graph/run.sh <URI> <PASSWORD>
+```
+
+If you want seed data:
+
+```
+./graph/run.sh <URI> <PASSWORD> 1
+```
+
+> If you do not pass `1`, any pre-existing seed data will be removed!
+
+#### Database Reset
+
+Run:
+
+```
+liquibase rollback --tag=v0 --changelog-file ./graph/main.xml --url jdbc:neo4j:<URI> --username neo4j --password <PASSWORD>
+```
+
+## Step 4: Wire application to the database
+
+It's fun time :tada:.
+
+Check out [step-4](https://github.com/neo4j/kafka-connector-workshop/tree/step-4) and reload this README for further
+instructions. We already wired login, user list and create user flows to the database as an example. Please feel free to
+play with it yourself, and take a stab on completing the task flows by yourself.
