@@ -47,7 +47,24 @@ Feel free to browse the source code and familiarize yourself with the components
 ## Step 2: Graph Model
 
 What would be a good graph model for this application?
-Either come up with a model of your own or see what we have designed by checking out
-branch [step-2](https://github.com/neo4j/kafka-connector-workshop/tree/step-2#step-2-graph-model) and reloading this
-`README`.
 
+Although we could come up with a dozen of different models, what we have decided to follow can be seen in the below
+image.
+
+![Data Model](images/data-model.png "Data Model")
+
+In a few sentences;
+
+- We will have `User` nodes, which will only have `name`, `email_address` and `creation_timestamp` properties. Node key
+  will be created on `email_address` property.
+- We will have `Task` nodes, which will only have `uuid`, `title`, `description`, `creation_timestamp` and
+  `last_update_timestamp` properties. Node key will be created on `uuid` property.
+- Task status will be stored as an additional label on `Task` nodes.
+- Every new task will have both `Task` and `Incoming` labels, and `Incoming` label will be replaced with `InProgress`
+  and `Completed` based on the transitioned state.
+- Assignment of tasks will be stored as `ASSIGNED_TO` typed relationships from `Task` to `User`.
+- State transitions will be stored as `TRANSITIONED` typed relationships originating from `User` to `Task`. Old and new
+  states will be reflected in `from` and `to` properties.
+- Relationships will not be updatable, so we decided to only keep `creation_timestamp` property in relationships.
+- We modeled a `WATCHES` relationship as well, which has no corresponding implementation in the exercise. Feel free to
+  use it as an improvement on your own.
