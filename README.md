@@ -239,6 +239,45 @@ docker compose restart connect
 
 A sample source connector configuration that we have created is as follows:
 
+For Confluent Cloud Custom connector:
+
+```json
+{
+  "confluent.custom.schema.registry.auto": "true",
+  "key.converter": "io.confluent.connect.avro.AvroConverter",
+  "value.converter": "io.confluent.connect.avro.AvroConverter",
+  "neo4j.uri": "<change with neo4j uri>",
+  "neo4j.authentication.basic.username": "<change with neo4j username>",
+  "neo4j.authentication.basic.password": "<change with neo4j password>",
+  "neo4j.source-strategy": "CDC",
+  "neo4j.start-from": "USER_PROVIDED",
+  "neo4j.start-from.value": "<paste the change identifier captured in Step 3>",
+  "neo4j.cdc.poll-interval": "5s",
+  "neo4j.cdc.topic.task-assigned.key-strategy": "ENTITY_KEYS",
+  "neo4j.cdc.topic.task-assigned.patterns.0.operation": "create",
+  "neo4j.cdc.topic.task-assigned.patterns.0.pattern": "(:Task)-[:ASSIGNED_TO]->(:User)",
+  "neo4j.cdc.topic.task-assigned.value-strategy": "ENTITY_EVENT",
+  "neo4j.cdc.topic.task-created.key-strategy": "ENTITY_KEYS",
+  "neo4j.cdc.topic.task-created.patterns.0.operation": "create",
+  "neo4j.cdc.topic.task-created.patterns.0.pattern": "(:Task:Incoming)",
+  "neo4j.cdc.topic.task-created.value-strategy": "ENTITY_EVENT",
+  "neo4j.cdc.topic.task-transitioned.key-strategy": "ENTITY_KEYS",
+  "neo4j.cdc.topic.task-transitioned.patterns.0.operation": "create",
+  "neo4j.cdc.topic.task-transitioned.patterns.0.pattern": "(:User)-[:TRANSITIONED]->(:Task)",
+  "neo4j.cdc.topic.task-transitioned.value-strategy": "ENTITY_EVENT",
+  "neo4j.cdc.topic.tasks.key-strategy": "ENTITY_KEYS",
+  "neo4j.cdc.topic.tasks.patterns.0.operation": "create",
+  "neo4j.cdc.topic.tasks.patterns.0.pattern": "(:Task)",
+  "neo4j.cdc.topic.tasks.value-strategy": "ENTITY_EVENT",
+  "neo4j.cdc.topic.users.key-strategy": "ENTITY_KEYS",
+  "neo4j.cdc.topic.users.patterns.0.operation": "create",
+  "neo4j.cdc.topic.users.patterns.0.pattern": "(:User)",
+  "neo4j.cdc.topic.users.value-strategy": "ENTITY_EVENT"
+}
+```
+
+For Docker compose connector:
+
 ```json
 {
   "name": "TasksSourceConnector",
