@@ -311,10 +311,7 @@ For Docker compose connector:
     "neo4j.cdc.topic.users.key-strategy": "ENTITY_KEYS",
     "neo4j.cdc.topic.users.value-strategy": "ENTITY_EVENT",
     "neo4j.cdc.topic.users.patterns.0.operation": "create",
-    "neo4j.cdc.topic.users.patterns.0.pattern": "(:User)",
-    "neo4j.cdc.topic.watches.key-strategy": "ENTITY_KEYS",
-    "neo4j.cdc.topic.watches.value-strategy": "ENTITY_EVENT",
-    "neo4j.cdc.topic.watches.patterns": "(:User)-[:WATCHES]->(:Task)"
+    "neo4j.cdc.topic.users.patterns.0.pattern": "(:User)"
   }
 }
 ```
