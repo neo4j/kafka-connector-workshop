@@ -215,5 +215,5 @@ Next step is to create an instance of Neo4j Connector for Confluent source conne
 happening in the database. Refer to [Neo4j Connector for Kafka](https://neo4j.com/docs/kafka) documentation for more
 information about the connector and how to install and configure it.
 
-Checkout branch [step-6](https://github.com/neo4j/kafka-connector-workshop/tree/step-6), and reload this `README` for
-further instructions.
+Checkout branch [step-6](https://github.com/neo4j/kafka-connector-workshop/tree/step-6#create-connector-instance), and
+reload this `README` for further instructions.
