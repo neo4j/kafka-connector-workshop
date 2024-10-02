@@ -19,7 +19,7 @@ A front-end application with no connections to the database can be found in the 
 This application has been implemented using TypeScript and React wired to fake data.
 
 In order to run the application, first make sure you have
-an [LTS version of NodeJS](https://nodejs.org/en/download/package-manager) installed.
+an [LTS version of Node.js](https://nodejs.org/en/download/package-manager) installed.
 
 First, change working directory to `app` folder:
 
@@ -41,7 +41,7 @@ npm start
 
 which will start your default browser.
 
-You can login using the email address `neo4j.connectors+workshop@gmail.com` and interact with fake data.
+You can log in using the email address `neo4j.connectors+workshop@gmail.com` and interact with fake data.
 Feel free to browse the source code and familiarize yourself with the components.
 
 ## Step 2: Graph Model
