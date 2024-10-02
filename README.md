@@ -328,5 +328,45 @@ Verify that everything is up and running, and you have messages in the configure
 Now that we have our source connector delivering messages into Kafka topics, it's time to look into how to curate email
 notifications out of this data.
 
-Check out [step-7](https://github.com/neo4j/kafka-connector-workshop/tree/step-7#step-7-install-smtp-sink-connector) and
-reload this README for further instructions.
+We will use a forked and updated version of [kafka-connect-email](https://github.com/wardziniak/kafka-connect-email)
+connector, which can be found [here](https://github.com/ali-ince/kafka-connect-email/tree/modernize-connector). Feel
+free to download and build a JAR out of it, or you can download one
+from [releases page](https://github.com/ali-ince/kafka-connect-email/releases/tag/workshop).
+
+Install the connector in the same way you did in Step 6.
+
+### Create connector instance
+
+A sample sink connector configuration that we have created is as follows:
+
+```json
+{
+  "name": "SendEmailConnector",
+  "config": {
+    "topics": "outgoing-email",
+    "connector.class": "com.wardziniak.kafka.connect.email.EmailSinkConnector",
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false",
+    "wardziniak.email.connect.hostname": "<replace with your smtp host>",
+    "wardziniak.email.connect.smtp.port": "<replace with your smtp port>",
+    "wardziniak.email.connect.from.address": "<replace with your from address>",
+    "wardziniak.email.connect.username": "<replace with your smtp username>",
+    "wardziniak.email.connect.password": "<replace with your smtp password>"
+  }
+}
+```
+
+Do not forget to replace the configuration values that's wrapped inside `<>` (including diamonds) based on your
+environment. Now that you have edited the configuration, you can go ahead and create an instance of our sink
+connector.
+
+## Step 8: Transform CDC events into email messages
+
+Our CDC events published into `users`, `tasks`, `task-created`, `task-assigned` and `task-transitioned` topics are not
+directly usable by our SMTP connector. We will use KSQL capabilities to transform these events into simple JSON messages
+that the SMTP connector expects.
+
+Check out [step-8](https://github.com/neo4j/kafka-connector-workshop/tree/step-8) and reload this README for further
+instructions.
