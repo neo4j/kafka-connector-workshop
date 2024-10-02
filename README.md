@@ -330,5 +330,5 @@ Verify that everything is up and running, and you have messages in the configure
 Now that we have our source connector delivering messages into Kafka topics, it's time to look into how to curate email
 notifications out of this data.
 
-Check out [step-7](https://github.com/neo4j/kafka-connector-workshop/tree/step-7) and reload this README for further
-instructions.
+Check out [step-7](https://github.com/neo4j/kafka-connector-workshop/tree/step-7#step-7-install-smtp-sink-connector) and
+reload this README for further instructions.
