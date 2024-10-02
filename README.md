@@ -48,5 +48,6 @@ Feel free to browse the source code and familiarize yourself with the components
 
 What would be a good graph model for this application?
 Either come up with a model of your own or see what we have designed by checking out
-branch [step-2](https://github.com/neo4j/kafka-connector-workshop/tree/step-2) and reloading this `README`.
+branch [step-2](https://github.com/neo4j/kafka-connector-workshop/tree/step-2#step-2-graph-model) and reloading this
+`README`.
 
