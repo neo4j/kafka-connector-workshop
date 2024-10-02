@@ -30,7 +30,7 @@ function main() {
     trap "git checkout ${current_branch}" EXIT
 
     git fetch --all
-    step_branches=$(git branch --remotes | grep step | cut -d'/' -f 2 | sort)
+    step_branches=$(git branch --remotes | grep step | cut -d'/' -f 2 | sort --version-sort)
 
     if [ "${current_branch}" == "start" ]; then
         previous_branch=${current_branch}
@@ -49,7 +49,7 @@ function main() {
         local step_branch
         previous_branch=${current_branch}
         current_step_number=$(echo "${current_branch}" | step_number)
-        max_step_number=$(echo "${step_branches}" | sort | tail -n 1 | step_number)
+        max_step_number=$(echo "${step_branches}" | sort --version-sort | tail -n 1 | step_number)
         for (( step_num=current_step_number+1; step_num<=max_step_number; step_num++ ))
         do
           step_branch="step-${step_num}"
