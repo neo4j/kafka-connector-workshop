@@ -71,7 +71,7 @@ In a few sentences;
 
 ## Step 3: Provision your database
 
-We need a database :).
+We need a database :smiley:.
 
-Check out branch [step-3](https://github.com/neo4j/kafka-connector-workshop/tree/step-3) and reload this README for
-further instructions.
+Check out branch [step-3](https://github.com/neo4j/kafka-connector-workshop/tree/step-3#step-3-provision-your-database)
+and reload this README for further instructions.
