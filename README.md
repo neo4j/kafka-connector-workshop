@@ -368,6 +368,136 @@ Our CDC events published into `users`, `tasks`, `task-created`, `task-assigned` 
 directly usable by our SMTP connector. We will use KSQL capabilities to transform these events into simple JSON messages
 that the SMTP connector expects.
 
-Check
-out [step-8](https://github.com/neo4j/kafka-connector-workshop/tree/step-8#step-8-transform-cdc-events-into-email-messages)
-and reload this README for further instructions.
+Open a KSQL console and start our multistep transformations.
+
+### Create lookup table for users
+
+```sql
+SET 'auto.offset.reset' = 'earliest';
+
+create stream users_stream with (kafka_topic='users',key_format='avro',value_format='avro');
+
+create stream users_stream_reshaped with (key_format='avro', value_format='avro') as
+select rowkey,
+       rowkey->KEYS->USER[1]->EMAIL_ADDRESS->S as EMAIL_ADDRESS,
+       STATE->AFTER->`PROPERTIES`['name']->S as NAME
+from users_stream;
+
+create stream users_extracted with (key_format='avro', value_format='avro') as
+select EMAIL_ADDRESS, 
+       NAME
+from users_stream_reshaped
+partition by email_address;
+
+create source table users_table 
+    (EMAIL_ADDRESS VARCHAR PRIMARY KEY, NAME VARCHAR)
+with (kafka_topic='USERS_EXTRACTED', key_format='avro', value_format='avro');
+```
+
+### Create lookup table for tasks
+
+```sql
+SET 'auto.offset.reset' = 'earliest';
+    
+create stream tasks_stream with (kafka_topic='tasks', key_format='avro', value_format='avro');
+
+create stream tasks_stream_reshaped with (key_format='avro', value_format='avro') as
+select rowkey,
+       rowkey->KEYS->TASK[1]->UUID->S as UUID,
+       STATE->AFTER->`PROPERTIES`['title']->S as TITLE,
+       STATE->AFTER->`PROPERTIES`['description']->S as DESCRIPTION
+from tasks_stream;
+
+create stream tasks_extracted with (key_format='avro', value_format='avro') as
+select UUID, 
+       TITLE, 
+       DESCRIPTION
+from tasks_stream_reshaped partition by uuid;
+
+create source table tasks_table 
+    (UUID VARCHAR PRIMARY KEY, TITLE VARCHAR, DESCRIPTION VARCHAR) 
+with (kafka_topic='TASKS_EXTRACTED', key_format='avro', value_format='avro');
+```
+
+### Generate email messages for task-created events
+
+```sql
+SET 'auto.offset.reset' = 'earliest';
+    
+create stream task_created_stream with (kafka_topic='task-created', key_format='avro', value_format='avro');
+
+create stream task_created_stream_reshaped with (key_format='avro', value_format='avro') as
+select ELEMENTID,
+       rowkey,
+       rowkey->keys->TASK[1]->UUID->S as UUID,
+       state->after->`PROPERTIES`['title']->S as TITLE,
+       state->after->`PROPERTIES`['description']->S as DESCRIPTION
+from task_created_stream;
+
+create stream task_created_email with (kafka_topic='outgoing-email', key_format='json', value_format='json') as
+select UUID,
+       'New task' as `title`,
+       'A new task is created with title "' + TITLE + '" and description "' + DESCRIPTION + '".' as `body`,
+       ARRAY[MAP('name' := 'Connectors Team', 'emailAddress' := 'connectors-workshop@neo4j.com')] as `toRecipients`
+from task_created_stream_reshaped
+partition by UUID;
+```
+
+### Generate email messages for task-assigned events
+
+```sql
+SET 'auto.offset.reset' = 'earliest';
+    
+create stream task_assigned_stream with (kafka_topic='task-assigned', value_format='avro');
+
+create stream task_assigned_stream_reshaped as
+select ELEMENTID,
+       `START`->keys->TASK[1]->UUID->S as TASK_UUID,
+       `END`->keys->USER[1]->EMAIL_ADDRESS->S as USER_EMAIL_ADDRESS
+from task_assigned_stream;
+
+create stream task_assigned_email with (kafka_topic='outgoing-email', key_format='JSON', value_format='JSON') as
+select a.TASK_UUID,
+       'A task is assigned to you' as `title`,
+       'Task "' + t.TITLE + '" is assigned to you.' as `body`,
+       ARRAY[MAP('name' := u.NAME, 'emailAddress' := u.EMAIL_ADDRESS),] as `toRecipients`
+from task_assigned_stream_reshaped a
+         INNER JOIN tasks_table t ON t.UUID = a.TASK_UUID
+         INNER JOIN users_table u on u.EMAIL_ADDRESS = a.USER_EMAIL_ADDRESS
+partition by a.TASK_UUID;
+
+create stream task_assigned_email_list with (kafka_topic='outgoing-email', key_format='JSON', value_format='JSON') as
+select a.TASK_UUID,
+       'Task is assigned' as `title`,
+       'Task "' + t.TITLE + '" is assigned to "' + u.NAME + '".' as `body`,
+       ARRAY[MAP('name' := 'Connectors Team', 'emailAddress' := 'connectors-workshop@neo4j.com')] as `toRecipients`
+from task_assigned_stream_reshaped a
+         INNER JOIN tasks_table t ON t.UUID = a.TASK_UUID
+         INNER JOIN users_table u on u.EMAIL_ADDRESS = a.USER_EMAIL_ADDRESS PARTITION BY a.TASK_UUID;
+partition by a.TASK_UUID;
+```
+
+### Generate email messages for task-transitioned events
+
+```sql
+SET 'auto.offset.reset' = 'earliest';
+    
+create stream task_transitioned_stream with (kafka_topic='task-transitioned', value_format='avro');
+
+create stream task_transitioned_stream_reshaped as
+select ELEMENTID,
+       `START`->keys->USER[1]->EMAIL_ADDRESS->S as USER_EMAIL_ADDRESS,
+       `END`->keys->TASK[1]->UUID->S as TASK_UUID,
+       state->after->`PROPERTIES`['from']->S as FROM_STATE,
+       state->after->`PROPERTIES`['to']->S as TO_STATE
+from task_transitioned_stream;
+
+create stream task_transitioned_email with (kafka_topic='outgoing-email', key_format='JSON', value_format='JSON') as
+select s.TASK_UUID,
+       'Task status updated' as `title`,
+       'Task "' + t.TITLE + '" has transitioned it''s status from ' + s.FROM_STATE + ' to ' + s.TO_STATE + '.' as `body`,
+       ARRAY[MAP('name' := 'Connectors Team', 'emailAddress' := 'connectors-workshop@neo4j.com')] as `toRecipients`
+from task_transitioned_stream_reshaped s
+    INNER JOIN tasks_table t ON t.UUID = s.TASK_UUID
+partition by s.TASK_UUID;
+```
