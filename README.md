@@ -179,6 +179,9 @@ liquibase rollback --tag=v0 --changelog-file ./graph/main.xml --url jdbc:neo4j:<
 
 It's fun time :tada:.
 
-Check out [step-4](https://github.com/neo4j/kafka-connector-workshop/tree/step-4) and reload this README for further
-instructions. We already wired login, user list and create user flows to the database as an example. Please feel free to
-play with it yourself, and take a stab on completing the task flows by yourself.
+Check
+out [step-4](https://github.com/neo4j/kafka-connector-workshop/tree/step-4#step-4-wire-application-to-the-database) and
+reload this README for further instructions.
+
+We already wired login, user list and create user flows to the database as an example. Please feel free to play with it
+yourself, and take a stab on completing the task flows by yourself.
