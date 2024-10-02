@@ -131,7 +131,7 @@ CALL db.cdc.current();
 
 ### Create schema and seed data
 
-We have prepared some liquibase change sets that introduces required constraints for our graph model, and optionally
+We have prepared some Liquibase change sets that initialize the required constraints for our graph model, and optionally
 introduce some seed data.
 
 #### Setup
@@ -160,6 +160,12 @@ If you want seed data:
 ```
 
 > If you do not pass `1`, any pre-existing seed data will be removed!
+
+For instance:
+
+```
+./graph/run.sh 'bolt://localhost' 'password' 1
+```
 
 #### Database Reset
 
