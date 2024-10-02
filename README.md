@@ -368,5 +368,6 @@ Our CDC events published into `users`, `tasks`, `task-created`, `task-assigned` 
 directly usable by our SMTP connector. We will use KSQL capabilities to transform these events into simple JSON messages
 that the SMTP connector expects.
 
-Check out [step-8](https://github.com/neo4j/kafka-connector-workshop/tree/step-8) and reload this README for further
-instructions.
+Check
+out [step-8](https://github.com/neo4j/kafka-connector-workshop/tree/step-8#step-8-transform-cdc-events-into-email-messages)
+and reload this README for further instructions.
