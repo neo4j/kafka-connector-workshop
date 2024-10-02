@@ -171,6 +171,13 @@ It's fun time :tada:.
 We already wired login, user list and create user flows to the database as an example. Please feel free to
 play with it yourself, and take a stab on completing the task flows by yourself.
 
+First, make sure you have installed new dependencies:
+
+```shell
+cd app
+npm install
+```
+
 We removed fake data from `UserService` and updated all functions to query the database. We used the following best
 practices while doing so:
 
