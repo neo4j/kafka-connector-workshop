@@ -178,8 +178,24 @@ cd app
 npm install
 ```
 
-We removed fake data from `UserService` and updated all functions to query the database. We used the following best
-practices while doing so:
+Then, configure Neo4j connection parameters inside an `.env.local` file:
+
+```shell
+cat > .env.local <<EOF
+REACT_APP_NEO4J_URI=<URI>
+REACT_APP_NEO4J_USERNAME=<USERNAME>
+REACT_APP_NEO4J_PASSWORD=<PASSWORD>
+EOF
+```
+
+Finally, you can start the application and see the user flows hitting the database.
+
+```shell
+npm start
+```
+
+As a starting point, we removed fake data from `UserService` and updated all functions to query the database. We used
+the following best practices while doing so:
 
 1. We have introduced a singleton `Neo4jDriver` object that holds a reference to an application wide driver object.
 2. Used `@neo4j/cypher-builder` to build our Cypher statements, which allows us to build more secure applications by
