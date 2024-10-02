@@ -311,7 +311,10 @@ For Docker compose connector:
     "neo4j.cdc.topic.users.key-strategy": "ENTITY_KEYS",
     "neo4j.cdc.topic.users.value-strategy": "ENTITY_EVENT",
     "neo4j.cdc.topic.users.patterns.0.operation": "create",
-    "neo4j.cdc.topic.users.patterns.0.pattern": "(:User)"
+    "neo4j.cdc.topic.users.patterns.0.pattern": "(:User)",
+    "neo4j.cdc.topic.watches.key-strategy": "ENTITY_KEYS",
+    "neo4j.cdc.topic.watches.value-strategy": "ENTITY_EVENT",
+    "neo4j.cdc.topic.watches.patterns": "(:User)-[:WATCHES]->(:Task)"
   }
 }
 ```
@@ -383,7 +386,7 @@ select rowkey,
        STATE->AFTER->`PROPERTIES`['name']->S as NAME
 from users_stream;
 
-create stream users_extracted with (key_format='avro', value_format='avro') as
+create stream users_extracted with (kafka_topic='users-extracted', key_format='avro', value_format='avro') as
 select EMAIL_ADDRESS, 
        NAME
 from users_stream_reshaped
@@ -391,7 +394,7 @@ partition by email_address;
 
 create source table users_table 
     (EMAIL_ADDRESS VARCHAR PRIMARY KEY, NAME VARCHAR)
-with (kafka_topic='USERS_EXTRACTED', key_format='avro', value_format='avro');
+with (kafka_topic='users-extracted', key_format='avro', value_format='avro');
 ```
 
 ### Create lookup table for tasks
@@ -408,7 +411,7 @@ select rowkey,
        STATE->AFTER->`PROPERTIES`['description']->S as DESCRIPTION
 from tasks_stream;
 
-create stream tasks_extracted with (key_format='avro', value_format='avro') as
+create stream tasks_extracted with (kafka_topic='tasks-extracted', key_format='avro', value_format='avro') as
 select UUID, 
        TITLE, 
        DESCRIPTION
@@ -416,7 +419,7 @@ from tasks_stream_reshaped partition by uuid;
 
 create source table tasks_table 
     (UUID VARCHAR PRIMARY KEY, TITLE VARCHAR, DESCRIPTION VARCHAR) 
-with (kafka_topic='TASKS_EXTRACTED', key_format='avro', value_format='avro');
+with (kafka_topic='tasks-extracted', key_format='avro', value_format='avro');
 ```
 
 ### Generate email messages for task-created events
@@ -460,7 +463,7 @@ create stream task_assigned_email with (kafka_topic='outgoing-email', key_format
 select a.TASK_UUID,
        'A task is assigned to you' as `title`,
        'Task "' + t.TITLE + '" is assigned to you.' as `body`,
-       ARRAY[MAP('name' := u.NAME, 'emailAddress' := u.EMAIL_ADDRESS),] as `toRecipients`
+       ARRAY[MAP('name' := u.NAME, 'emailAddress' := u.EMAIL_ADDRESS)] as `toRecipients`
 from task_assigned_stream_reshaped a
          INNER JOIN tasks_table t ON t.UUID = a.TASK_UUID
          INNER JOIN users_table u on u.EMAIL_ADDRESS = a.USER_EMAIL_ADDRESS
