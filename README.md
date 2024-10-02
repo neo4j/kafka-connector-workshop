@@ -205,5 +205,5 @@ the following best practices while doing so:
 
 ## Step 5: Completed application
 
-Check out [step-5](https://github.com/neo4j/kafka-connector-workshop/tree/step-5) and reload this README for further
-instructions. 
+Check out [step-5](https://github.com/neo4j/kafka-connector-workshop/tree/step-5#step-5-completed-application) and
+reload this README for further instructions. 
