@@ -118,17 +118,6 @@ statement in Neo4j Browser.
 ALTER DATABASE neo4j SET OPTION txLogEnrichment 'FULL' WAIT;
 ```
 
-### Record current change identifier
-
-Although not necessary, in order to capture all changes we will make from this moment, we will record the current change
-identifier for use later in our connector step.
-Invoke the following statement in Neo4j Browser and record the returned change identifier.
-
-```cypher
-
-CALL db.cdc.current();
-```
-
 ### Create schema and seed data
 
 We have prepared some Liquibase change sets that initialize the required constraints for our graph model, and optionally
