@@ -473,7 +473,7 @@ select a.TASK_UUID,
        ARRAY[MAP('name' := 'Connectors Team', 'emailAddress' := 'connectors-workshop@neo4j.com')] as `toRecipients`
 from task_assigned_stream_reshaped a
          INNER JOIN tasks_table t ON t.UUID = a.TASK_UUID
-         INNER JOIN users_table u on u.EMAIL_ADDRESS = a.USER_EMAIL_ADDRESS PARTITION BY a.TASK_UUID;
+         INNER JOIN users_table u on u.EMAIL_ADDRESS = a.USER_EMAIL_ADDRESS
 partition by a.TASK_UUID;
 ```
 
