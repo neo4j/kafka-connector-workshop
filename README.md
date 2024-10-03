@@ -330,7 +330,7 @@ notifications out of this data.
 
 We will use a forked and updated version of [kafka-connect-email](https://github.com/wardziniak/kafka-connect-email)
 connector, which can be found [here](https://github.com/ali-ince/kafka-connect-email/tree/modernize-connector). Feel
-free to download and build a JAR out of it, or you can download one
+free to download and build a JAR out of it by running `sbt assembly` there, or you can download one
 from [releases page](https://github.com/ali-ince/kafka-connect-email/releases/tag/workshop).
 
 Install the connector in the same way you did in Step 6.
